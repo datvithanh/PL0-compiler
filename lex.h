@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
-#include "scanner.h"
+#include "token.h"
 
 TokenType Token;
 int Num;
@@ -23,14 +23,18 @@ TokenType checkKeyword(char *Id)
 char getCh()
 {
     char x = fgetc(f);
+    if (x == -1)
+        printf("\n");
+    else
+        printf("%c\n", x);
     if (x == '\t')
         col += 4;
     else
         ++col;
     if (x == '\n')
     {
-        ++ln;
-        col = 0;
+            ++ln;
+            col = 0;
     }
     return toupper(x);
 }
@@ -172,30 +176,32 @@ TokenType getToken()
         return NONE;
 }
 
-int main(int argc, char *argv[])
-{
-    if (argc > 1)
-        f = fopen(argv[1], "rt");
-    else
-        f = fopen("test.pl0", "rt");
-    Ch = ' ';
-    do
-    {
-        Token = getToken();
-        if (Token == NUMBER)
-            printf("NUMBER (%d)\n", Num);
-        if (Token == IDENT) {
-            if(strlen(Id) > MAX_IDENT_LEN) {
-                printf("%s is longer than Maximum ident length = %d\n", Id, MAX_IDENT_LEN);
-                printf("ln %d col %d\n", ln, col);
-                return 0;
-            }
-            printf("IDENT (%s)\n", Id);
-        }
-        else
-            printf("%s\n", TokenTab[Token]);
-    } while (Token != NONE);
-    printf("ln %d col %d\n", ln, col);
-    fclose(f);
-    return 0;
-}
+// int main(int argc, char *argv[])
+// {
+//     if (argc > 1)
+//         f = fopen(argv[1], "rt");
+//     else
+//         f = fopen("test.pl0", "rt");
+//     Ch = ' ';
+//     do
+//     {
+//         Token = getToken();
+//         if (Token == NUMBER)
+//             printf("NUMBER (%d)\n", Num);
+//         if (Token == IDENT)
+//         {
+//             if (strlen(Id) > MAX_IDENT_LEN)
+//             {
+//                 printf("%s is longer than Maximum ident length = %d\n", Id, MAX_IDENT_LEN);
+//                 printf("ln %d col %d\n", ln, col);
+//                 return 0;
+//             }
+//             printf("IDENT (%s)\n", Id);
+//         }
+//         else
+//             printf("%s\n", TokenTab[Token]);
+//     } while (Token != NONE);
+//     printf("ln %d col %d\n", ln, col);
+//     fclose(f);
+//     return 0;
+// }

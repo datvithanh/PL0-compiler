@@ -1,0 +1,1 @@
+gcc scanner.c -o pl0
