@@ -94,7 +94,7 @@ void block()
             if (Token == IDENT)
             {
                 Token = getToken();
-                if (Token == ASSIGN)
+                if (Token == EQU || Token == ASSIGN)
                 {
                     Token = getToken();
                     if (Token == NUMBER)
@@ -117,7 +117,7 @@ void block()
                         error("Thieu NUMBER");
                 }
                 else
-                    error("Thieu ASSIGN");
+                    error("Thieu EQU");
             }
             else
                 error("Thieu IDENT");
@@ -174,23 +174,8 @@ void block()
             else
                 error("Thieu IDENT");
         }
-
-    if (Token == BEGIN)
-    {
-        Token = getToken();
-        statement();
-        while (Token == SEMICOLON)
-        {
-            Token = getToken();
-            statement();
-        }
-        if (Token == END)
-            Token = getToken();
-        else
-            error("Thieu END");
-    }
-    // else
-    //     error("Thieu BEGIN");
+    
+    statement();
 }
 
 void statement()
@@ -204,7 +189,7 @@ void statement()
             expression();
         }
         else
-            error("Thieu toan tu gan");
+            error("Thieu ASSIGN");
     }
     else if (Token == CALL)
     {
