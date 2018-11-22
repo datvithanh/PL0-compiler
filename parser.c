@@ -133,6 +133,21 @@ void block()
             if (Token == IDENT)
             {
                 Token = getToken();
+                if (Token == LBRACK)
+                {
+                    Token = getToken();
+                    if (Token == NUMBER)
+                    {
+                        Token = getToken();
+                        if (Token == RBRACK)
+                            Token = getToken();
+                        else
+                            error("Thieu RBRACK");
+                    }
+                    else
+                        error("Thieu NUMBER");
+                }
+
                 if (Token == COMMA)
                     Token = getToken();
                 else
@@ -157,6 +172,32 @@ void block()
             if (Token == IDENT)
             {
                 Token = getToken();
+                if (Token == LPARENT)
+                {
+                    Token = getToken();
+                    if (Token != VAR && Token != IDENT)
+                        error("Thieu VAR hoac IDENT");
+                    while (Token == VAR || Token == IDENT)
+                    {
+                        if (Token == VAR)
+                            Token = getToken();
+                        if (Token == IDENT)
+                        {
+                            Token = getToken();
+                            if (Token == SEMICOLON)
+                                Token = getToken();
+                            else
+                                error("Thieu SEMICOLON");
+                        }
+                        else
+                            error("Thieu IDENT");
+                    }
+
+                    if (Token == RPARENT)
+                        Token = getToken();
+                    else
+                        error("Thieu RPARENT");
+                }
                 if (Token == SEMICOLON)
                 {
                     Token = getToken();
@@ -174,7 +215,7 @@ void block()
             else
                 error("Thieu IDENT");
         }
-    
+
     statement();
 }
 
@@ -183,6 +224,15 @@ void statement()
     if (Token == IDENT)
     {
         Token = getToken();
+        if (Token == LBRACK)
+        {
+            Token = getToken();
+            expression();
+            if (Token == RBRACK)
+                Token = getToken();
+            else
+                error("Thieu RBRACK");
+        }
         if (Token == ASSIGN)
         {
             Token = getToken();

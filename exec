@@ -1,2 +1,2 @@
 gcc *.c -o pl0
-./pl0 test.pl0
+./pl0 $1
