@@ -1,4 +1,5 @@
 #include "lex.h"
+#include <stdlib.h>
 
 void error(const char msg[]);
 void program();
@@ -9,67 +10,78 @@ void condition(void);
 void term(void);
 void factor(void);
 
+void printToken();
+
 int main(int argc, char *argv[])
 {
-    printf("sdajdkaksdkk ear \n");
     if (argc > 1)
         f = fopen(argv[1], "rt");
     else
         f = fopen("test.pl0", "rt");
     Ch = ' ';
-    do
-    {
-        Token = getToken();
-        // if (Token == NUMBER)
-        //     printf("NUMBER (%d)\n", Num);
-        // if (Token == IDENT)
-        // {
-        //     if (strlen(Id) > MAX_IDENT_LEN)
-        //     {
-        //         printf("%s is longer than Maximum ident length = %d\n", Id, MAX_IDENT_LEN);
-        //         printf("ln %d col %d\n", ln, col);
-        //         return 0;
-        //     }
-        //     printf("IDENT (%s)\n", Id);
-        // }
-        // else
-        printf("%s\n", TokenTab[Token]);
-    } while (Token != NONE);
-    printf("ln %d col %d\n", ln, col);
+
+    // do
+    // {
+    //     Token = getToken();
+    //     // if (Token == NUMBER)
+    //     //     printf("NUMBER (%d)\n", Num);
+    //     // if (Token == IDENT)
+    //     // {
+    //     //     if (strlen(Id) > MAX_IDENT_LEN)
+    //     //     {
+    //     //         printf("%s is longer than Maximum ident length = %d\n", Id, MAX_IDENT_LEN);
+    //     //         printf("ln %d col %d\n", ln, col);
+    //     //         return 0;
+    //     //     }
+    //     //     printf("IDENT (%s)\n", Id);
+    //     // }
+    //     // else
+    //     printf("%s\n", TokenTab[Token]);
+    // } while (Token != NONE);
+
+    Token = getToken();
+    program();
     fclose(f);
     return 0;
 }
 
 void error(const char msg[])
 {
-    printf("%s\n", msg);
+    printf("\n%s\n", msg);
+    printf("ln %d col %d\n", ln, col);
+    exit(0);
 }
 
-void Program()
+void printToken()
+{
+    printf("\n%s\n", TokenTab[Token]);
+}
+
+void program()
 {
     if (Token == PROGRAM)
     {
         Token = getToken();
         if (Token == IDENT)
         {
-            getToken();
+            Token = getToken();
             if (Token == SEMICOLON)
             {
-                getToken();
+                Token = getToken();
                 block();
-                if (Token == PERIOD)
-                    printf("Thành công");
+                if (Token == PERIOD || Token == SEMICOLON)
+                    printf("\nThanh cong\n");
                 else
-                    error("Thiếu dấu.");
+                    error("Thieu PERIOD");
             }
             else
-                error("Thiếu dấu chấm phẩy");
+                error("Thieu SEMICOLON");
         }
         else
-            error("Thiếu tên chương trình");
+            error("Thieu PROGRAM NAME");
     }
     else
-        error("Thiếu từ khóa Program");
+        error("Thieu PROGRAM");
 }
 
 void block()
@@ -77,11 +89,108 @@ void block()
     if (Token == CONST)
     {
         Token = getToken();
-        while (Token == IDENT)
-        {   
-            
+        while (1)
+        {
+            if (Token == IDENT)
+            {
+                Token = getToken();
+                if (Token == ASSIGN)
+                {
+                    Token = getToken();
+                    if (Token == NUMBER)
+                    {
+                        Token = getToken();
+                        if (Token == COMMA)
+                            Token = getToken();
+                        else
+                        {
+                            if (Token == SEMICOLON)
+                            {
+                                Token = getToken();
+                                break;
+                            }
+                            else
+                                error("Thieu SEMICOLON");
+                        }
+                    }
+                    else
+                        error("Thieu NUMBER");
+                }
+                else
+                    error("Thieu ASSIGN");
+            }
+            else
+                error("Thieu IDENT");
         }
+        block();
     }
+
+    if (Token == VAR)
+    {
+        Token = getToken();
+        while (1)
+        {
+            if (Token == IDENT)
+            {
+                Token = getToken();
+                if (Token == COMMA)
+                    Token = getToken();
+                else
+                {
+                    if (Token == SEMICOLON)
+                    {
+                        Token = getToken();
+                        break;
+                    }
+                    else
+                        error("Thieu SEMICOLON");
+                }
+            }
+        }
+        block();
+    }
+
+    if (Token == PROCEDURE)
+        while (Token == PROCEDURE)
+        {
+            Token = getToken();
+            if (Token == IDENT)
+            {
+                Token = getToken();
+                if (Token == SEMICOLON)
+                {
+                    Token = getToken();
+                    block();
+                    if (Token == SEMICOLON)
+                    {
+                        Token = getToken();
+                    }
+                    else
+                        error("Thieu SEMICOLON");
+                }
+                else
+                    error("Thieu SEMICOLON");
+            }
+            else
+                error("Thieu IDENT");
+        }
+
+    if (Token == BEGIN)
+    {
+        Token = getToken();
+        statement();
+        while (Token == SEMICOLON)
+        {
+            Token = getToken();
+            statement();
+        }
+        if (Token == END)
+            Token = getToken();
+        else
+            error("Thieu END");
+    }
+    // else
+    //     error("Thieu BEGIN");
 }
 
 void statement()
@@ -91,7 +200,7 @@ void statement()
         Token = getToken();
         if (Token == ASSIGN)
         {
-            getToken();
+            Token = getToken();
             expression();
         }
         else
@@ -102,6 +211,7 @@ void statement()
         Token = getToken();
         if (Token == IDENT)
         {
+            Token = getToken();
             if (Token == LPARENT)
             {
                 Token = getToken();
@@ -112,13 +222,13 @@ void statement()
                     expression();
                 }
                 if (Token == RPARENT)
-                    getToken();
+                    Token = getToken();
                 else
-                    error("Thiếu dấu đóng ngoặc");
+                    error("Thieu RPARENT");
             }
         }
         else
-            error("Thiếu tên thủ tục / hàm");
+            error("Thieu PROCEDURE NAME");
     }
     else if (Token == BEGIN)
     {
@@ -132,16 +242,25 @@ void statement()
         if (Token == END)
             Token = getToken();
         else
-            error("Thiếu từ khóa End");
+            error("Thieu END");
     }
     else if (Token == IF)
     {
         Token = getToken();
         condition();
+        printToken();
         if (Token == THEN)
+        {
+            Token = getToken();
             statement();
+            if (Token == ELSE)
+            {
+                Token = getToken();
+                statement();
+            }
+        }
         else
-            error("Thiếu THEN");
+            error("Thieu THEN");
     }
     else if (Token == WHILE)
     {
@@ -153,7 +272,7 @@ void statement()
             statement();
         }
         else
-            error("Thiếu DO");
+            error("Thieu DO");
     }
     else if (Token == FOR)
     {
@@ -203,14 +322,22 @@ void expression()
 
 void condition()
 {
-    expression();
-    if (Token == EQU || Token == NEQ || Token == LSS || Token == LEQ || Token == GTR || Token == GEQ)
+    if (Token == ODD)
     {
         Token = getToken();
         expression();
     }
     else
-        error("condition: syntax error");
+    {
+        expression();
+        if (Token == EQU || Token == NEQ || Token == LSS || Token == LEQ || Token == GTR || Token == GEQ)
+        {
+            Token = getToken();
+            expression();
+        }
+        else
+            error("condition: syntax error");
+    }
 }
 
 void term()

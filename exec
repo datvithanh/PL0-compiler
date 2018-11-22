@@ -1,1 +1,2 @@
-gcc scanner.c -o pl0
+gcc *.c -o pl0
+./pl0 test.pl0

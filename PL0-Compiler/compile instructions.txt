@@ -1,0 +1,9 @@
+Have the folder compiler on your desktop with data.h, main.c, lex.c, parser.c, vm.c, and all test input files in it.
+
+Open Terminal and do this:
+
+cd Desktop
+cd compiler
+cc - o compile main.c lex.c parser.c vm.c
+./compile (for running through whole program using test files)
+./compile -l -a -v (for running through whole program with flags printed to terminal)

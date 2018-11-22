@@ -26,15 +26,20 @@ char getCh()
     if (x == -1)
         printf("\n");
     else
-        printf("%c\n", x);
+    {
+        if (x == '\t')
+            printf("    ");
+        else
+            printf("%c", x);
+    }
     if (x == '\t')
         col += 4;
     else
         ++col;
     if (x == '\n')
     {
-            ++ln;
-            col = 0;
+        ++ln;
+        col = 0;
     }
     return toupper(x);
 }
