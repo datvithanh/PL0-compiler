@@ -84,17 +84,17 @@ void program()
         error("Thieu PROGRAM");
 }
 
+//checked
 void block()
 {
     if (Token == CONST)
     {
         Token = getToken();
-        while (1)
-        {
-            if (Token == IDENT)
+        if (Token == IDENT)
+            while (1)
             {
                 Token = getToken();
-                if (Token == EQU || Token == ASSIGN)
+                if (Token == EQU)
                 {
                     Token = getToken();
                     if (Token == NUMBER)
@@ -119,18 +119,15 @@ void block()
                 else
                     error("Thieu EQU");
             }
-            else
-                error("Thieu IDENT");
-        }
-        block();
+        else
+            error("Thieu IDENT");
     }
 
     if (Token == VAR)
     {
         Token = getToken();
-        while (1)
-        {
-            if (Token == IDENT)
+        if (Token == IDENT)
+            while (Token == IDENT)
             {
                 Token = getToken();
                 if (Token == LBRACK)
@@ -161,64 +158,76 @@ void block()
                         error("Thieu SEMICOLON");
                 }
             }
-        }
-        block();
+        else
+            error("Thieu IDENT");
     }
 
-    if (Token == PROCEDURE)
-        while (Token == PROCEDURE)
+    while (Token == PROCEDURE)
+    {
+        Token = getToken();
+        if (Token == IDENT)
         {
             Token = getToken();
-            if (Token == IDENT)
+            if (Token == LPARENT)
             {
                 Token = getToken();
-                if (Token == LPARENT)
+                if (Token != VAR && Token != IDENT)
+                    error("Thieu VAR hoac IDENT");
+                while (Token == VAR || Token == IDENT)
                 {
-                    Token = getToken();
-                    if (Token != VAR && Token != IDENT)
-                        error("Thieu VAR hoac IDENT");
-                    while (Token == VAR || Token == IDENT)
+                    if (Token == VAR)
+                        Token = getToken();
+                    if (Token == IDENT)
                     {
-                        if (Token == VAR)
+                        Token = getToken();
+                        if (Token == SEMICOLON)
                             Token = getToken();
-                        if (Token == IDENT)
+                        else if (Token == RPARENT)
                         {
                             Token = getToken();
-                            if (Token == SEMICOLON)
-                                Token = getToken();
-                            else
-                                error("Thieu SEMICOLON");
+                            break;
                         }
-                        else
-                            error("Thieu IDENT");
                     }
-
-                    if (Token == RPARENT)
-                        Token = getToken();
                     else
-                        error("Thieu RPARENT");
+                        error("Thieu IDENT");
                 }
+            }
+            if (Token == SEMICOLON)
+            {
+                Token = getToken();
+                block();
                 if (Token == SEMICOLON)
                 {
                     Token = getToken();
-                    block();
-                    if (Token == SEMICOLON)
-                    {
-                        Token = getToken();
-                    }
-                    else
-                        error("Thieu SEMICOLON");
                 }
                 else
                     error("Thieu SEMICOLON");
             }
             else
-                error("Thieu IDENT");
+                error("Thieu SEMICOLON");
         }
+        else
+            error("Thieu IDENT");
+    }
 
-    statement();
+    if (Token == BEGIN)
+    {
+        Token = getToken();
+        statement();
+        while (Token == SEMICOLON)
+        {
+            Token = getToken();
+            statement();
+        }
+        if (Token == END)
+            Token = getToken();
+        else
+            error("Thieu END");
+    }
+    else error("Thieu BEGIN");
 }
 
+//checked
 void statement()
 {
     if (Token == IDENT)
@@ -263,7 +272,7 @@ void statement()
             }
         }
         else
-            error("Thieu PROCEDURE NAME");
+            error("Thieu IDENT");
     }
     else if (Token == BEGIN)
     {
@@ -283,7 +292,6 @@ void statement()
     {
         Token = getToken();
         condition();
-        printToken();
         if (Token == THEN)
         {
             Token = getToken();
@@ -343,6 +351,7 @@ void statement()
     }
 }
 
+//checked
 void expression()
 {
     if (Token == PLUS || Token == MINUS)
@@ -355,6 +364,7 @@ void expression()
     }
 }
 
+//checked
 void condition()
 {
     if (Token == ODD)
@@ -375,6 +385,7 @@ void condition()
     }
 }
 
+//checked
 void term()
 {
     factor();
@@ -385,6 +396,7 @@ void term()
     }
 }
 
+//checked
 void factor()
 {
     if (Token == IDENT || Token == NUMBER)
