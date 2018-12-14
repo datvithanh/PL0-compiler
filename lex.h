@@ -6,7 +6,6 @@
 TokenType Token;
 int Num;
 char Id[MAX_IDENT_LEN + 1];
-
 FILE *f;
 char Ch;
 int ln = 1, col = 0;
