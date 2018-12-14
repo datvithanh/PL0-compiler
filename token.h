@@ -58,13 +58,14 @@ typedef enum
 {
     CONSTANT = 1,
     VARIABLE,
-    PROC
+    PROC,
+    ARR
 } kind;
 
 typedef enum {
     INTEGER = 1,
     ARRAY,
-    SUBPROC 
+    SUBPROC
 } type;
 
 typedef struct symbol

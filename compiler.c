@@ -5,6 +5,9 @@ void constDeclaration();
 void varDeclaration();
 void procDeclaration();
 int checkIdent(char s[MAX_IDENT_LEN + 1]);
+int getParamCount(char s[MAX_IDENT_LEN + 1]);
+void setKind(char s[MAX_IDENT_LEN + 1], int kind);
+void addParamCount(char s[MAX_IDENT_LEN + 1], int paramCount);
 symtab *mktable(symtab *tbl);
 void enterproc(symtab *tbl, char name[MAX_IDENT_LEN + 1], symtab *newtbl);
 void addWidth(symtab *tbl, int width);
@@ -13,6 +16,9 @@ void push(symtab *tbl);
 void pop();
 symtab *top();
 void printTable(symtab *tbl);
+void printToken();
+int checkTableIdent(char s[MAX_IDENT_LEN + 1]);
+
 
 void error(int error);
 void program();
@@ -22,8 +28,8 @@ void expression(void);
 void condition(void);
 void term(void);
 void factor(void);
-void printToken();
 symtab *table;
+
 int main(int argc, char *argv[])
 {
     if (argc > 1)
@@ -34,11 +40,15 @@ int main(int argc, char *argv[])
     Token = getToken();
 
     push(mktable(NULL));
-
     program();
     printf("\nSuccess \n");
     fclose(f);
     return 0;
+}
+
+void printToken()
+{
+    printf("\n%s\n", TokenTab[Token]);
 }
 
 void printTable(symtab *tbl)
@@ -120,6 +130,58 @@ int checkIdent(char s[MAX_IDENT_LEN + 1])
     return 0;
 }
 
+int checkTableIdent(char s[MAX_IDENT_LEN + 1])
+{
+    symtab *tbl = top();
+    int i;
+    for (i = 0; i < tbl->len; ++i)
+        if (strcmp(tbl->table[i].name, s) == 0)
+            return 1;
+    return 0;
+}
+
+void addParamCount(char s[MAX_IDENT_LEN + 1], int paramCount)
+{
+    symtab *tbl = top()->previous;
+    int i;
+    for (i = 0; i < tbl->len; ++i)
+        if (strcmp(tbl->table[i].name, s) == 0)
+            tbl->table[i].type = paramCount;
+}
+
+int getParamCount(char s[MAX_IDENT_LEN + 1])
+{
+    symtab *tbl = top();
+    int i;
+    for (i = 0; i < tbl->len; ++i)
+        if (strcmp(tbl->table[i].name, s) == 0)
+            return tbl->table[i].type;
+    return 0;
+}
+
+void setKind(char s[MAX_IDENT_LEN + 1], int kind)
+{
+    symtab *tbl = top();
+    int i;
+    for (i = 0; i < tbl->len; ++i)
+        if (strcmp(tbl->table[i].name, s) == 0)
+            tbl->table[i].kind = kind;
+}
+
+int getType(char s[MAX_IDENT_LEN + 1])
+{
+    symtab *tbl = top();
+    do
+    {
+        int i;
+        for (i = 0; i < tbl->len; ++i)
+            if (strcmp(tbl->table[i].name, s) == 0)
+                return tbl->table[i].kind;
+        tbl = tbl->previous;
+    } while (tbl != NULL);
+    return 0;
+}
+
 void constDeclaration()
 {
     symbol sym;
@@ -156,15 +218,18 @@ void varDeclaration()
 {
     symbol sym;
     sym.kind = VARIABLE;
+    char Ident[MAX_IDENT_LEN + 1];
 
     do
     {
         Token = getToken();
         if (Token != IDENT)
             error(2);
-        if (checkIdent(Id))
+        if (checkTableIdent(Id))
             error(18);
         strcpy(sym.name, Id);
+        strcpy(Ident, Id);
+        enter(top(), sym);
 
         Token = getToken();
         if (Token == LBRACK)
@@ -172,7 +237,7 @@ void varDeclaration()
             Token = getToken();
             if (Token != NUMBER)
                 error(8);
-
+            setKind(Ident, ARR);
             Token = getToken();
             if (Token != RBRACK)
                 error(5);
@@ -180,7 +245,6 @@ void varDeclaration()
             Token = getToken();
         }
 
-        enter(top(), sym);
     } while (Token == COMMA);
 
     if (Token != SEMICOLON)
@@ -192,20 +256,24 @@ void procDeclaration()
 {
     symbol sym;
     sym.kind = PROC;
+    char Ident[MAX_IDENT_LEN + 1];
+
     do
     {
-
         Token = getToken();
         if (Token != IDENT)
             error(2);
         if (checkIdent(Id))
             error(18);
-        strcpy(sym.name, Id);
 
+        strcpy(Ident, Id);
         table = mktable(top());
         enterproc(top(), Id, table);
         push(table);
         Token = getToken();
+
+        int paramCount = 0;
+
         if (Token == LPARENT)
         {
             Token = getToken();
@@ -213,14 +281,21 @@ void procDeclaration()
                 error(10);
             while (Token == VAR || Token == IDENT)
             {
+                ++paramCount;
                 if (Token == VAR)
                 {
                     Token = getToken();
                     if (Token != IDENT)
                         error(2);
+
                     if (checkIdent(Id) == 1)
                         error(18);
+                    sym.kind = VARIABLE;
+                    strcpy(sym.name, Id);
+                    enter(top(), sym);
+
                     Token = getToken();
+
                     if (Token == SEMICOLON)
                         Token = getToken();
                     else if (Token == RPARENT)
@@ -233,7 +308,7 @@ void procDeclaration()
                 {
                     if (Token != IDENT)
                         error(2);
-                    if (checkIdent(Id) == 0)
+                    if (checkTableIdent(Id) == 0)
                         error(19);
                     Token = getToken();
                     if (Token == SEMICOLON)
@@ -246,6 +321,7 @@ void procDeclaration()
                 }
             }
         }
+        addParamCount(Ident, paramCount);
         if (Token != SEMICOLON)
             error(9);
         Token = getToken();
@@ -256,11 +332,6 @@ void procDeclaration()
         Token = getToken();
 
     } while (Token == PROCEDURE);
-}
-
-void printToken()
-{
-    printf("\n%s\n", TokenTab[Token]);
 }
 
 void program()
@@ -296,37 +367,50 @@ void block()
 
     if (Token != BEGIN)
         error(14);
+
     Token = getToken();
     statement();
     while (Token == SEMICOLON)
     {
         Token = getToken();
         statement();
-    }
+    } 
+
     if (Token != END)
         error(7);
-
     Token = getToken();
 }
 
 //checked
 void statement()
 {
+    char Ident[MAX_IDENT_LEN + 1];
+
     if (Token == IDENT)
     {
         if (!checkIdent(Id))
             error(19);
+        int Type = getType(Id);
+
         Token = getToken();
         if (Token == LBRACK)
         {
+            if (Type == CONSTANT || Type == VARIABLE)
+                error(22);
             Token = getToken();
             expression();
             if (Token != RBRACK)
                 error(5);
             Token = getToken();
+            Type = VARIABLE;
         }
+        else if (Type == ARR)
+            error(22);
+
         if (Token != ASSIGN)
             error(6);
+        if (Type != VARIABLE)
+            error(15);
         Token = getToken();
         expression();
     }
@@ -336,23 +420,33 @@ void statement()
         if (Token != IDENT)
             error(2);
         if (!checkIdent(Id))
-            error(19);
+            error(24);
         Token = getToken();
         if (!checkIdent(Id))
             error(19);
+        if (getType(Id) != 3)
+            error(20);
+        int paramCount = 0;
+
+        strcpy(Ident, Id);
         if (Token == LPARENT)
         {
             Token = getToken();
             expression();
+            ++paramCount;
             while (Token == COMMA)
             {
                 Token = getToken();
                 expression();
+                ++paramCount;
             }
             if (Token != RPARENT)
                 error(3);
             Token = getToken();
         }
+
+        if (getParamCount(Ident) != paramCount)
+            error(21);
     }
     else if (Token == BEGIN)
     {
@@ -363,6 +457,7 @@ void statement()
             Token = getToken();
             statement();
         }
+
         if (Token != END)
             error(7);
         Token = getToken();
@@ -373,9 +468,10 @@ void statement()
         condition();
         if (Token != THEN)
             error(16);
-
         Token = getToken();
+
         statement();
+
         if (Token == ELSE)
         {
             Token = getToken();
@@ -449,7 +545,7 @@ void condition()
             expression();
         }
         else
-            error(18);
+            error(25);
     }
 }
 
@@ -468,9 +564,25 @@ void term()
 void factor()
 {
     if (Token == IDENT)
+    {
         if (!checkIdent(Id))
             error(19);
-    if (Token == IDENT || Token == NUMBER)
+        int Type = getType(Id);
+        Token = getToken();
+        if (Token == LBRACK)
+        {
+            if (Type == VARIABLE || Type == CONSTANT)
+                error(22);
+            Token = getToken();
+            expression();
+            if (Token != RBRACK)
+                error(5);
+            Token = getToken();
+        }
+        else if (Type == ARR)
+            error(22);
+    }
+    else if (Token == NUMBER)
         Token = getToken();
     else if (Token == LPARENT)
     {
@@ -481,6 +593,8 @@ void factor()
         else
             error(3);
     }
+    else
+        error(23);
 }
 
 void error(int error)
@@ -532,7 +646,7 @@ void error(int error)
         printf("Expecting BEGIN");
         break;
     case 15:
-        printf("Const is immutable");
+        printf("Can only assign VARIABLE");
         break;
     case 16:
         printf("Expecting THEN");
@@ -545,6 +659,24 @@ void error(int error)
         break;
     case 19:
         printf("Variable is not declared");
+        break;
+    case 20:
+        printf("Can only call PROCEDURE");
+        break;
+    case 21:
+        printf("Wrong number of params");
+        break;
+    case 22:
+        printf("Type not compatible");
+        break;
+    case 23:
+        printf("Expecting an expression");
+        break;
+    case 24:
+        printf("Proc is not declared");
+        break;
+    case 25:
+        printf("Dont understand notation");
         break;
     }
     printf("\n");

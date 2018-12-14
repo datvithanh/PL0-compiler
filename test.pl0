@@ -38,7 +38,7 @@ procedure divide;
    end;
 procedure gcd;
    var f,g;
-   begin y+y:=xas; g:=y;
+   begin f:=x; g:=y;
    while f<>g do
       begin
          if f<g then g:=g-f;
@@ -51,6 +51,4 @@ begin
    x:=m; y:=n; call multiply;
    x:=25; y:=3; call divide;
    x:=84; y:=36; call gcd;
-   call gcd();
-   r[]:=;
 end.
