@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
-#include "token.h"
+#include "data.h"
 
 TokenType Token;
 int Num;
